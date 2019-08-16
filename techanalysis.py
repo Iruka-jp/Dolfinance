@@ -72,6 +72,10 @@ class TechAnalysis(QtWidgets.QMainWindow):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.addWidget(self.ui.plotFrame)
 
+        #########################
+        # FOR TEST REMOVE AFTER #
+        #########################
+        self.stock.movingAverage(50)
 
 
 if __name__ == '__main__':

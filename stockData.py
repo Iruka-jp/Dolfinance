@@ -1,6 +1,7 @@
 import sys, os
 import pandas
 import pandas_datareader.data as web
+import numpy as np
 from datetime import datetime, timedelta, date
 import calendar
 
@@ -9,6 +10,13 @@ import calendar
 class StockData():
     def __init__(self):
         self.quote = pandas.DataFrame()
+        self.pp = 0
+        self.r1 = 0
+        self.r2 = 0
+        self.r3 = 0
+        self.s1 = 0
+        self.s2 = 0
+        self.s3 = 0
 
     def daterange(start_date, end_date):
         for n in range(int ((end_date - start_date).days)):
@@ -21,6 +29,31 @@ class StockData():
             nameDays.append(s.strftime("%A"))
         self.quote.insert(0, 'Day', nameDays)
 
+    def movingAverage(self, period):
+        closePrice = self.quote['Close']
+        datapointNb = len(closePrice)
+        if datapointNb < period:
+            print("Not enough data to compute the moveing average")
+        else:
+            mav = [np.nan] * (period - 1)
+            i = 0
+            while i+period < datapointNb:
+                mav.append(np.cumsum(closePrice[i:i+period]))
+                i+=1
+            self.quote['MAV ' + str(period)]=mav
+            print(self.quote)
+
+    def pprs(self):
+        close = self.stock['Close'][-1]
+        high = self.stock['High'][-1]
+        low = self.stock['Low'][-1]
+        self.pp =  (high + low + close)/3
+        self.r1 = 2*self.pp  - low
+        self.s1 = 2*self.pp - high
+        self.r2 = self.pp + high - low
+        self.s2 = self.pp - high + low
+        self.r3 = high + 2*(self.pp - low)
+        self.s3 = low - 2*(high - self.pp)
 
     def getTickerData(self,symbol, startDate, endDate):
         startDate = str(startDate)
