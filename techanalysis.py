@@ -13,6 +13,8 @@ class TechAnalysis(QtWidgets.QMainWindow):
     def __init__(self):
         super(TechAnalysis, self).__init__()
         self.ui = uic.loadUi('techanalysis.ui', self)
+        self.ui.startDateInput.setDate(QtCore.QDate().currentDate().addMonths(-1))
+        self.ui.endDateInput.setDate(QtCore.QDate().currentDate().addDays(-1))
         self.stock = StockData()
         self.ui.getData.clicked.connect(self.plotStock)
 
