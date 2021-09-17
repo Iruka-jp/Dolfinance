@@ -1,15 +1,27 @@
 import sys, os
-import pandas
+import pandas as pd
 import pandas_datareader.data as web
 import numpy as np
 from datetime import datetime, timedelta, date
 import calendar
 
 
+def to_week_day(start, end):
+    if start.isoweekday() == 6:
+        start += timedelta(days=2)
+    elif start.isoweekday() == 7:
+        start += timedelta(days=1)
+    if end.isoweekday() == 6:
+        end += timedelta(days=-1)
+    elif end.isoweekday == 7:
+        end += timedelta(days=-2)
+
+    return start, end
+
 
 class StockData():
     def __init__(self):
-        self.quote = pandas.DataFrame()
+        self.quote = pd.DataFrame()
         self.pp = 0
         self.r1 = 0
         self.r2 = 0
@@ -23,26 +35,27 @@ class StockData():
             yield start_date + timedelta(n)
 
     def webQuery(self,symbol, start, end):
-        self.quote = web.DataReader(symbol, 'av-daily-adjusted', start, end, api_key=os.getenv('ALPHAVANTAGE_API_KEY'))
+        quote = web.DataReader(symbol, 'av-daily-adjusted', start, end, api_key=os.getenv('ALPHAVANTAGE_API_KEY'))
         nameDays=[]
-        for s in self.quote.index:
+        for s in quote.index:
             s = datetime(int(s[:4]), int(s[5:7]), int(s[8:]))
             nameDays.append(s.strftime("%A"))
-        self.quote.insert(0, 'Day', nameDays)
+        quote.insert(0, 'Day', nameDays)
+        return quote
 
     def movingAverage(self, period):
-        closePrice = self.quote['close']
-        datapointNb = len(closePrice)
-        if datapointNb < period:
-            print("Not enough data to compute the moving average")
-        else:
-            mav = [np.nan] * (period - 1)
-            i = 0
-            while i+period < datapointNb:
-                mav.append(np.cumsum(closePrice[i:i+period]))
-                i+=1
-            self.quote['MAV ' + str(period)]=mav
-            print(self.quote)
+        self.quote['MAV ' + str(period)]=self.quote['close'].rolling(period).mean()
+        # closePrice = self.quote['close']
+        # datapointNb = len(closePrice)
+        # if datapointNb < period:
+        #     print("Not enough data to compute the moving average")
+        # else:
+        #     mav = [np.nan] * (period-1)
+        #     i = 0
+        #     while i+period <= datapointNb:
+        #         mav.append(np.cumsum(closePrice[i:i+period]))
+        #         i+=1
+        #     self.quote['MAV ' + str(period)]=mav/period
 
     def pprs(self):
         close = self.stock['close'][-1]
@@ -57,30 +70,24 @@ class StockData():
         self.s3 = low - 2*(high - self.pp)
 
     def getTickerData(self,symbol, startDate, endDate):
-        startDate = str(startDate)
-        endDate = str(endDate)
-        start = datetime(int(startDate[:4]), int(startDate[5:7]), int(startDate[8:10]))
-        end = datetime(int(endDate[:4]), int(endDate[5:7]), int(endDate[8:10]))
-        if start.isoweekday() == 6:
-            start += timedelta(days=2)
-        elif start.isoweekday() == 7:
-            start += timedelta(days=1)
-        if end.isoweekday() == 6:
-            end += timedelta(days=-1)
-        elif end.isoweekday == 7:
-            end += timedelta(days=-2)
+        start = pd.to_datetime(startDate)
+        end = pd.to_datetime(endDate)
 
+        start, end = to_week_day(start, end)
         myQuotes = os.listdir('./quotes/')
         filename = symbol + '.csv'
         if filename in myQuotes:
-            self.quote = pandas.read_csv('./quotes/' + filename, sep=';', index_col=0, parse_dates=True)
+            self.quote = pd.read_csv('./quotes/' + filename, sep=';', index_col=0, parse_dates=True)
             if start - self.quote.index[0] < timedelta(days=0):
-                prevData = self.webQuery(symbol, start, self.quote.index[0] - timedelta(days=1))
+                start, end = to_week_day(start, self.quote.index[0] - timedelta(days=1))
+                prevData = self.webQuery(symbol,start, end)
                 self.quote = prevData.append(self.quote)
             if end - self.quote.index[-1] > timedelta(days=0):
-                newData = self.webQuery(symbol, self.quote.index[-1] + timedelta(days=1), end)
+                start, end = to_week_day(self.quote.index[-1], end)
+                newData = self.webQuery(symbol, start, end)
                 self.quote.append(newData)
         else:
-            self.webQuery(symbol, start, end)
+            self.quote = self.webQuery(symbol, start, end)
 
         self.quote = self.quote.drop_duplicates()
+

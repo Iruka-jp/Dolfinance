@@ -7,13 +7,14 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 import plotly.offline as po
 
 class TechAnalysis(QtWidgets.QMainWindow):
     def __init__(self):
         super(TechAnalysis, self).__init__()
         self.ui = uic.loadUi('techanalysis.ui', self)
-        self.ui.startDateInput.setDate(QtCore.QDate().currentDate().addMonths(-1))
+        self.ui.startDateInput.setDate(QtCore.QDate().currentDate().addMonths(-3))
         self.ui.endDateInput.setDate(QtCore.QDate().currentDate().addDays(-1))
         self.stock = StockData()
         self.ui.getData.clicked.connect(self.plotStock)
@@ -24,6 +25,10 @@ class TechAnalysis(QtWidgets.QMainWindow):
         endDate = self.ui.endDateInput.date().toString('yyyy-MM-dd')
         self.stock.getTickerData(ticker, startDate, endDate)
         self.stock.quote.to_csv(path_or_buf='quotes/'+ ticker +'.csv', sep=';')
+
+        self.stock.movingAverage(50)
+        self.stock.movingAverage(20)
+        self.stock.movingAverage(10)
 
         fig = make_subplots(
             rows=2, cols=1,
@@ -50,6 +55,21 @@ class TechAnalysis(QtWidgets.QMainWindow):
                            low=self.stock.quote['low'],
                            close=self.stock.quote['close'],
                            name='Price'),
+            row=1, col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(x=list(self.stock.quote.index), y=list(self.stock.quote['MAV 10']),fillcolor='black', name='MAV 10'),
+            row=1, col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(x=list(self.stock.quote.index), y=list(self.stock.quote['MAV 20']),fillcolor='yellow', name='MAV 20'),
+            row=1, col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(x=list(self.stock.quote.index), y=list(self.stock.quote['MAV 50']), fillcolor='blue', name='MAV 50'),
             row=1, col=1
         )
 
@@ -83,10 +103,6 @@ class TechAnalysis(QtWidgets.QMainWindow):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.addWidget(self.ui.plotFrame)
 
-        #########################
-        # FOR TEST REMOVE AFTER #
-        #########################
-        #self.stock.movingAverage(50)
 
 
 if __name__ == '__main__':
