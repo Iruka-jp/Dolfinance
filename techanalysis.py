@@ -34,12 +34,21 @@ class TechAnalysis(QtWidgets.QMainWindow):
                    [{"type": "Candlestick"}]],
         )
 
+        # fig.add_trace(
+        #     go.Candlestick(x=self.stock.quote.index,
+        #                    open=self.stock.quote['Open'],
+        #                    high=self.stock.quote['High'],
+        #                    low=self.stock.quote['Low'],
+        #                    close=self.stock.quote['Close'],
+        #                    name='Price'),
+        #     row=1, col=1
+        # )
         fig.add_trace(
             go.Candlestick(x=self.stock.quote.index,
-                           open=self.stock.quote['Open'],
-                           high=self.stock.quote['High'],
-                           low=self.stock.quote['Low'],
-                           close=self.stock.quote['Close'],
+                           open=self.stock.quote['open'],
+                           high=self.stock.quote['high'],
+                           low=self.stock.quote['low'],
+                           close=self.stock.quote['close'],
                            name='Price'),
             row=1, col=1
         )
@@ -47,7 +56,7 @@ class TechAnalysis(QtWidgets.QMainWindow):
         fig.add_trace(
             go.Bar(
                 x=self.stock.quote.index,
-                y=self.stock.quote['Volume'],
+                y=self.stock.quote['volume'],
                 name='Volume'
             ),
             row=2, col=1
@@ -77,7 +86,7 @@ class TechAnalysis(QtWidgets.QMainWindow):
         #########################
         # FOR TEST REMOVE AFTER #
         #########################
-        self.stock.movingAverage(50)
+        #self.stock.movingAverage(50)
 
 
 if __name__ == '__main__':

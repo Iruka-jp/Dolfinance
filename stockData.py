@@ -23,17 +23,18 @@ class StockData():
             yield start_date + timedelta(n)
 
     def webQuery(self,symbol, start, end):
-        self.quote = web.DataReader(symbol, 'yahoo', start, end)
+        self.quote = web.DataReader(symbol, 'av-daily-adjusted', start, end, api_key=os.getenv('ALPHAVANTAGE_API_KEY'))
         nameDays=[]
         for s in self.quote.index:
+            s = datetime(int(s[:4]), int(s[5:7]), int(s[8:]))
             nameDays.append(s.strftime("%A"))
         self.quote.insert(0, 'Day', nameDays)
 
     def movingAverage(self, period):
-        closePrice = self.quote['Close']
+        closePrice = self.quote['close']
         datapointNb = len(closePrice)
         if datapointNb < period:
-            print("Not enough data to compute the moveing average")
+            print("Not enough data to compute the moving average")
         else:
             mav = [np.nan] * (period - 1)
             i = 0
@@ -44,9 +45,9 @@ class StockData():
             print(self.quote)
 
     def pprs(self):
-        close = self.stock['Close'][-1]
-        high = self.stock['High'][-1]
-        low = self.stock['Low'][-1]
+        close = self.stock['close'][-1]
+        high = self.stock['high'][-1]
+        low = self.stock['low'][-1]
         self.pp =  (high + low + close)/3
         self.r1 = 2*self.pp  - low
         self.s1 = 2*self.pp - high
