@@ -90,7 +90,8 @@ class FinDataScrapper:
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         links = soup.find_all('a')
-        links = [(''.join(link.text.split()), 'https://www2.tse.or.jp' + link.get('href')) for link in links if 'ＩＦＲＳ' in link.text]
+        links = [(''.join(link.text.split()), 'https://www2.tse.or.jp' + link.get('href')) for link in links if
+                 ('ＩＦＲＳ' in link.text or '日本基準' in link.text)]
         compamyName = self.driver.find_element_by_class_name('fontsizeM').text
 
         dir = 'fillings/{}'.format(compamyName + '_' + ticker)
@@ -109,6 +110,12 @@ class FinDataScrapper:
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='tse')
+    parser.add_argument('--ticker', metavar='path', required=True,
+                        help='stock ticker as per TSE definition')
+    args = parser.parse_args()
     driver_path = r'C:/dev/WebDrivers/edgedriver_win64_93/msedgedriver.exe'
     fds = FinDataScrapper(driver_path)
-    fds.get_stock_fillings('69020')
+    fds.get_stock_fillings(args.ticker)
