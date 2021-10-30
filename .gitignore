@@ -1,0 +1,7 @@
+tse_First Section.csv
+tse_Second Section.csv
+venv/
+fillings/
+.idea/
+__pycache__/
+.ipynb_checkpoints/
