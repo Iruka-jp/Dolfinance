@@ -1,3 +1,5 @@
+import pandas as pd
+
 def get_yf_data(ticker,start_date,end_date,freq_type,freq):
     freq_types=['mo','wk','d','h','m']
     import requests
