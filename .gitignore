@@ -1,0 +1,8 @@
+.idea/workspace.xml
+.ipynb_checkpoints/
+__pycache__/
+fillings/
+tse_First Section.csv
+tse_Second Section.csv
+venv/Lib/
+venv/Scripts/
